@@ -363,7 +363,7 @@
 
     // FETCH DATA FROM GOOGLE SHEETS DATABASE
     async function loadDataFromGoogleSheets() {
-      if(GOOGLE_API_URL === "https://script.google.com/macros/s/AKfycbzTJmGYAXZnVDF6pAv8OxAGsx43cyXNmgr8vnageRUuEur6Ow7evcBb9y-72MPAWV5e/exec") {
+      if(GOOGLE_API_URL === "PASTE_URL_WEB_APP_ANDA_DI_SINI") {
         console.warn("URL Web App Google Apps Script belum dipasang.");
         return;
       }
@@ -481,7 +481,7 @@
       };
 
       // Simpan ke Google Sheets
-      if(GOOGLE_API_URL !== "https://script.google.com/macros/s/AKfycbzTJmGYAXZnVDF6pAv8OxAGsx43cyXNmgr8vnageRUuEur6Ow7evcBb9y-72MPAWV5e/exec") {
+      if(GOOGLE_API_URL !== "PASTE_URL_WEB_APP_ANDA_DI_SINI") {
         fetch(GOOGLE_API_URL, { method: 'POST', body: JSON.stringify(newUser) });
       }
 
@@ -514,7 +514,7 @@
 
       const payload = { action: 'saveContent', id, title, type, rating, genre, poster, desc };
 
-      if(GOOGLE_API_URL !== "https://script.google.com/macros/s/AKfycbzTJmGYAXZnVDF6pAv8OxAGsx43cyXNmgr8vnageRUuEur6Ow7evcBb9y-72MPAWV5e/exec") {
+      if(GOOGLE_API_URL !== "PASTE_URL_WEB_APP_ANDA_DI_SINI") {
         fetch(GOOGLE_API_URL, { method: 'POST', body: JSON.stringify(payload) });
       }
 
@@ -536,7 +536,7 @@
 
       const payload = { action: 'saveEpisode', showId: currentManagingShowId, season, ep, title, driveId };
 
-      if(GOOGLE_API_URL !== "https://script.google.com/macros/s/AKfycbzTJmGYAXZnVDF6pAv8OxAGsx43cyXNmgr8vnageRUuEur6Ow7evcBb9y-72MPAWV5e/exec") {
+      if(GOOGLE_API_URL !== "PASTE_URL_WEB_APP_ANDA_DI_SINI") {
         fetch(GOOGLE_API_URL, { method: 'POST', body: JSON.stringify(payload) });
       }
 
@@ -559,7 +559,7 @@
 
       const payload = { action: 'saveUser', id, name, email, password, role, status };
 
-      if(GOOGLE_API_URL !== "https://script.google.com/macros/s/AKfycbzTJmGYAXZnVDF6pAv8OxAGsx43cyXNmgr8vnageRUuEur6Ow7evcBb9y-72MPAWV5e/exec") {
+      if(GOOGLE_API_URL !== "PASTE_URL_WEB_APP_ANDA_DI_SINI") {
         fetch(GOOGLE_API_URL, { method: 'POST', body: JSON.stringify(payload) });
       }
 
