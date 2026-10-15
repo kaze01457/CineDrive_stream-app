@@ -363,15 +363,18 @@
 
     // AMBIL DATA REAL-TIME DARI GOOGLE SHEETS
     async function loadDataFromGoogleSheets() {
+      // Jalankan renderAuthUI dan initAuth terlebih dahulu agar tombol Masuk langsung muncul
+      initAuth();
+    
       try {
         const response = await fetch(GOOGLE_API_URL + "?action=getData");
         const data = await response.json();
         if(data.shows) database = data.shows;
         if(data.users) userList = data.users;
-
+    
         renderGenres();
         renderCatalog();
-        initAuth();
+        renderAuthUI(); // Refresh UI Auth setelah data user dari Google Sheets selesai dimuat
       } catch(err) {
         console.error("Gagal memuat data dari Google Sheets:", err);
       }
