@@ -774,19 +774,64 @@
       renderCatalog(filtered);
     }
 
-    function addNewGenrePrompt() {
+    async function addNewGenrePrompt() {
       const name = prompt('Nama Genre Baru:');
-      if(name && !genresList.includes(name)) {
+      if (name && !genresList.includes(name)) {
         genresList.push(name);
         renderGenres();
+
+        try {
+          fetch(GOOGLE_API_URL, {
+            method: 'POST',
+            body: JSON.stringify({ action: 'addGenre', name: name.trim() })
+          });
+          alert(`Genre "${name}" berhasil ditambahkan ke Google Sheets!`);
+        } catch (err) {
+          console.error("Gagal menyimpan genre:", err);
+        }
       }
     }
 
-    function deleteGenre(index) {
-      if(confirm('Hapus genre ini?')) {
-        genresList.splice(index, 1);
+    // HAPUS GENRE DARI MEMORI DAN GOOGLE SHEETS
+    async function deleteGenre(genreName) {
+      if (confirm(`Apakah Anda yakin ingin menghapus genre "${genreName}"?`)) {
+        genresList = genresList.filter(g => g.toLowerCase() !== genreName.toLowerCase());
         renderGenres();
+    
+        try {
+          fetch(GOOGLE_API_URL, {
+            method: 'POST',
+            body: JSON.stringify({ action: 'deleteGenre', name: genreName })
+          });
+          alert(`Genre "${genreName}" telah dihapus dari Google Sheets.`);
+        } catch (err) {
+          console.error("Gagal menghapus genre:", err);
+        }
       }
+    }
+    
+    // UPDATE JUGA RENDER GENRE PADA TAB ADMIN
+    function renderGenres() {
+      const container = document.getElementById('genreContainer');
+      container.innerHTML = genresList.map(g => `
+        <button onclick="filterGenre('${g.toLowerCase()}')" 
+                class="px-4 py-1.5 rounded-full border transition shrink-0 ${
+                  activeGenre === g.toLowerCase() || (activeGenre === 'all' && g === 'All') 
+                    ? 'bg-brand-600 border-brand-500 text-white font-bold' 
+                    : 'bg-darkcard border-zinc-800 text-zinc-400 hover:text-white'
+                }">${g}</button>
+      `).join('');
+    
+      const adminGrid = document.getElementById('adminGenreGrid');
+      if(adminGrid) {
+        adminGrid.innerHTML = genresList.filter(g => g !== 'All').map((g) => `
+          <div class="bg-darkcard border border-zinc-800 p-3 rounded-xl flex items-center justify-between text-xs font-bold text-white">
+            <span>${g}</span>
+            <button onclick="deleteGenre('${g}')" class="text-rose-500 hover:text-rose-400 p-1"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>
+          </div>
+        `).join('');
+      }
+      lucide.createIcons();
     }
 
     function switchAdminTab(tab) {
