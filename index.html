@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>CineDrive - Streaming Platform (Google Workspace Integrated)</title>
+  <title>CineDrive - Streaming Platform & Admin Workspace</title>
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Lucide Icons CDN -->
@@ -89,9 +89,9 @@
       
       <div class="absolute bottom-8 left-4 lg:left-12 right-4 max-w-2xl space-y-3">
         <div class="flex items-center gap-2">
-          <span id="heroTypeBadge" class="bg-brand-600 text-white text-[10px] font-extrabold px-2.5 py-0.5 rounded-md uppercase tracking-wider">ANIME SERIES</span>
-          <span class="text-amber-400 text-xs font-bold flex items-center gap-1"><i data-lucide="star" class="w-3.5 h-3.5 fill-current"></i> 9.2</span>
-          <span class="text-zinc-400 text-xs font-medium">2026 • Google Workspace HD</span>
+          <span id="heroTypeBadge" class="bg-brand-600 text-white text-[10px] font-extrabold px-2.5 py-0.5 rounded-md uppercase tracking-wider">CINEDRIVE STREAM</span>
+          <span class="text-amber-400 text-xs font-bold flex items-center gap-1"><i data-lucide="star" class="w-3.5 h-3.5 fill-current"></i> 9.8</span>
+          <span class="text-zinc-400 text-xs font-medium">Google Workspace & Drive Connected</span>
         </div>
         <h1 id="heroTitle" class="text-3xl sm:text-5xl font-black text-white tracking-tight drop-shadow-md">Selamat Datang di CineDrive</h1>
         <p id="heroDesc" class="text-zinc-300 text-xs sm:text-sm line-clamp-3 leading-relaxed">
@@ -270,7 +270,7 @@
         <input type="hidden" id="editUserId" value="">
         <div><label class="block text-zinc-400 mb-1 font-semibold">Nama Lengkap</label><input type="text" id="inputUserName" required class="w-full bg-zinc-900 border border-zinc-800 rounded-xl p-2.5 text-white"></div>
         <div><label class="block text-zinc-400 mb-1 font-semibold">Email Workspace</label><input type="email" id="inputUserEmail" required class="w-full bg-zinc-900 border border-zinc-800 rounded-xl p-2.5 text-white"></div>
-        <div><label class="block text-zinc-400 mb-1 font-semibold">Password</label><input type="password" id="inputUserPassword" required class="w-full bg-zinc-900 border border-zinc-800 rounded-xl p-2.5 text-white"></div>
+        <div><label class="block text-zinc-400 mb-1 font-semibold">Password</label><input type="password" id="inputUserPassword" class="w-full bg-zinc-900 border border-zinc-800 rounded-xl p-2.5 text-white"></div>
         <div class="grid grid-cols-2 gap-3">
           <div>
             <label class="block text-zinc-400 mb-1 font-semibold">Role</label>
@@ -349,7 +349,7 @@
 
   <!-- JAVASCRIPT LOGIC & API CONNECTIVITY -->
   <script>
-    // ⚠️ MASUKKAN API URL WEB APP GOOGLE APPS SCRIPT ANDA DI BAWAH INI:
+    // URL Web App Google Apps Script Terpasang Resmi
     const GOOGLE_API_URL = "https://script.google.com/macros/s/AKfycbzTJmGYAXZnVDF6pAv8OxAGsx43cyXNmgr8vnageRUuEur6Ow7evcBb9y-72MPAWV5e/exec";
 
     let currentUser = null;
@@ -361,19 +361,15 @@
     let database = [];
     let userList = [];
 
-    // FETCH DATA FROM GOOGLE SHEETS DATABASE
+    // AMBIL DATA REAL-TIME DARI GOOGLE SHEETS
     async function loadDataFromGoogleSheets() {
-      if(GOOGLE_API_URL === "PASTE_URL_WEB_APP_ANDA_DI_SINI") {
-        console.warn("URL Web App Google Apps Script belum dipasang.");
-        return;
-      }
-
       try {
         const response = await fetch(GOOGLE_API_URL + "?action=getData");
         const data = await response.json();
         if(data.shows) database = data.shows;
         if(data.users) userList = data.users;
 
+        renderGenres();
         renderCatalog();
         initAuth();
       } catch(err) {
@@ -480,10 +476,7 @@
         status: 'Aktif'
       };
 
-      // Simpan ke Google Sheets
-      if(GOOGLE_API_URL !== "PASTE_URL_WEB_APP_ANDA_DI_SINI") {
-        fetch(GOOGLE_API_URL, { method: 'POST', body: JSON.stringify(newUser) });
-      }
+      fetch(GOOGLE_API_URL, { method: 'POST', body: JSON.stringify(newUser) });
 
       userList.push(newUser);
       currentUser = newUser;
@@ -514,9 +507,7 @@
 
       const payload = { action: 'saveContent', id, title, type, rating, genre, poster, desc };
 
-      if(GOOGLE_API_URL !== "PASTE_URL_WEB_APP_ANDA_DI_SINI") {
-        fetch(GOOGLE_API_URL, { method: 'POST', body: JSON.stringify(payload) });
-      }
+      fetch(GOOGLE_API_URL, { method: 'POST', body: JSON.stringify(payload) });
 
       database.unshift({ id, title, type, rating, genre, poster, desc, episodes: [] });
       renderCatalog();
@@ -536,9 +527,7 @@
 
       const payload = { action: 'saveEpisode', showId: currentManagingShowId, season, ep, title, driveId };
 
-      if(GOOGLE_API_URL !== "PASTE_URL_WEB_APP_ANDA_DI_SINI") {
-        fetch(GOOGLE_API_URL, { method: 'POST', body: JSON.stringify(payload) });
-      }
+      fetch(GOOGLE_API_URL, { method: 'POST', body: JSON.stringify(payload) });
 
       const show = database.find(d => d.id === currentManagingShowId);
       show.episodes.push({ season, ep, title, driveId });
@@ -559,14 +548,29 @@
 
       const payload = { action: 'saveUser', id, name, email, password, role, status };
 
-      if(GOOGLE_API_URL !== "PASTE_URL_WEB_APP_ANDA_DI_SINI") {
-        fetch(GOOGLE_API_URL, { method: 'POST', body: JSON.stringify(payload) });
-      }
+      fetch(GOOGLE_API_URL, { method: 'POST', body: JSON.stringify(payload) });
 
       userList.push({ id, name, email, password, role, status });
       renderAdminTables();
       closeModal('userModal');
       alert('Akun pengguna berhasil disimpan di Google Sheets!');
+    }
+
+    function renderGenres() {
+      const container = document.getElementById('genreContainer');
+      container.innerHTML = genresList.map(g => {
+        const isSelected = (activeGenre === g.toLowerCase() || (activeGenre === 'all' && g === 'All'));
+        return `
+          <button onclick="filterGenre('${g.toLowerCase()}')" 
+                  class="px-4 py-1.5 rounded-full border transition shrink-0 ${
+                    isSelected 
+                      ? 'bg-brand-600 border-brand-500 text-white font-bold' 
+                      : 'bg-darkcard border-zinc-800 text-zinc-400 hover:text-white'
+                  }">
+            ${g}
+          </button>
+        `;
+      }).join('');
     }
 
     function renderCatalog() {
