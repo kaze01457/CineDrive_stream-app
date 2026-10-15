@@ -319,7 +319,7 @@
     </div>
   </div>
 
-  <!-- JAVASCRIPT LOGIC DENGAN PERBAIKAN AWAIT API -->
+  <!-- JAVASCRIPT LOGIC DENGAN PERBAIKAN LENGKAP -->
   <script>
     const GOOGLE_API_URL = "https://script.google.com/macros/s/AKfycbzTJmGYAXZnVDF6pAv8OxAGsx43cyXNmgr8vnageRUuEur6Ow7evcBb9y-72MPAWV5e/exec";
 
@@ -472,7 +472,6 @@
       }
     }
 
-    // FUNGSI UPLOAD FILE DIPERBAIKI SINKRONISASINYA
     async function uploadFileDirect(inputElement, targetType) {
       const file = inputElement.files[0];
       if (!file) return;
@@ -587,7 +586,6 @@
       alert('Data pengguna berhasil diperbarui!');
     }
 
-    // PERBAIKAN RENDER GENRE & IKON LUCIDE
     function renderGenres() {
       const container = document.getElementById('genreContainer');
       container.innerHTML = genresList.map(g => `
@@ -611,7 +609,6 @@
         `).join('');
       }
       
-      // KUNCI PERBAIKAN: Pemanggilan ikon Lucide agar ikon trash-2 tidak hilang
       setTimeout(() => { lucide.createIcons(); }, 50);
     }
 
@@ -755,9 +752,80 @@
         });
       }
     }
+
+    function openContentModal(mode, id = null) {
+      document.getElementById('editContentId').value = id || '';
+      const genreGroup = document.getElementById('genreCheckboxGroup');
+      
+      let activeGenres = [];
+      if (mode === 'edit' && id) {
+        const item = database.find(d => d.id === id);
+        document.getElementById('inputTitle').value = item.title;
+        document.getElementById('inputType').value = item.type;
+        document.getElementById('inputRating').value = item.rating;
+        document.getElementById('inputPoster').value = item.poster;
+        document.getElementById('inputDesc').value = item.desc;
+        activeGenres = item.genre;
+      } else {
+        document.getElementById('contentForm').reset();
+      }
+
+      genreGroup.innerHTML = genresList.filter(g => g !== 'All').map(g => `
+        <label class="flex items-center gap-1.5 text-zinc-300 cursor-pointer">
+          <input type="checkbox" value="${g}" class="genre-checkbox rounded accent-brand-600" ${activeGenres.includes(g) ? 'checked' : ''}>
+          <span>${g}</span>
+        </label>
+      `).join('');
+
+      document.getElementById('contentModal').classList.remove('hidden');
+    }
+
+    function openEpisodeManagerModal(showId) {
+      currentManagingShowId = showId;
+      const item = database.find(d => d.id === showId);
+      document.getElementById('epManagerShowTitle').innerText = `Kelola Episode: ${item.title}`;
+      renderEpisodeManagerList();
+      document.getElementById('episodeManagerModal').classList.remove('hidden');
+    }
+
+    function renderEpisodeManagerList() {
+      const item = database.find(d => d.id === currentManagingShowId);
+      const list = document.getElementById('epManagerList');
+      if(!item || item.episodes.length === 0) {
+        list.innerHTML = `<div class="p-4 text-center text-zinc-500 text-xs">Belum ada episode.</div>`;
+        return;
+      }
+      list.innerHTML = item.episodes.map((ep) => `
+        <div class="p-3 flex items-center justify-between text-xs hover:bg-zinc-800/40 transition">
+          <div class="space-y-0.5">
+            <span class="font-bold text-white">S${ep.season} E${ep.ep}: ${ep.title}</span>
+            <div class="text-[10px] text-zinc-500 font-mono">Drive ID: ${ep.driveId}</div>
+          </div>
+        </div>
+      `).join('');
+      lucide.createIcons();
+    }
+
+    function openUserModal(mode, id = null) {
+      document.getElementById('editUserId').value = id || '';
+      document.getElementById('userForm').reset();
+      document.getElementById('userModal').classList.remove('hidden');
+    }
+
     function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
-    function filterGenre(g) { activeGenre = g; if(document.getElementById('mainContainer').classList.contains('hidden')) navigate('home'); renderCatalog(); }
-    function filterType(type) { activeType = type; if(document.getElementById('mainContainer').classList.contains('hidden')) navigate('home'); renderCatalog(); }
+    
+    function filterGenre(g) { 
+      activeGenre = g; 
+      if(document.getElementById('mainContainer').classList.contains('hidden')) navigate('home'); 
+      renderCatalog(); 
+    }
+
+    function filterType(type) { 
+      activeType = type; 
+      if(document.getElementById('mainContainer').classList.contains('hidden')) navigate('home'); 
+      renderCatalog(); 
+    }
+
     function handleSearch(q) {
       if (document.getElementById('mainContainer').classList.contains('hidden')) {
         navigate('home');
@@ -768,7 +836,52 @@
       );
       renderCatalog(filtered);
     }
-      else document.getElementById('adminUsersTab').classList.remove('hidden');
+
+    async function addNewGenrePrompt() {
+      const name = prompt('Nama Genre Baru:');
+      if (name && !genresList.includes(name)) {
+        genresList.push(name);
+        renderGenres();
+
+        await fetch(GOOGLE_API_URL, {
+          method: 'POST',
+          body: JSON.stringify({ action: 'addGenre', name: name.trim() })
+        });
+        alert(`Genre "${name}" ditambahkan!`);
+      }
+    }
+
+    async function deleteGenre(genreName) {
+      if (confirm(`Hapus genre "${genreName}"?`)) {
+        genresList = genresList.filter(g => g.toLowerCase() !== genreName.toLowerCase());
+        renderGenres();
+
+        await fetch(GOOGLE_API_URL, {
+          method: 'POST',
+          body: JSON.stringify({ action: 'deleteGenre', name: genreName })
+        });
+      }
+    }
+
+    function switchAdminTab(tab) {
+      document.getElementById('adminContentTab').classList.add('hidden');
+      document.getElementById('adminGenresTab').classList.add('hidden');
+      document.getElementById('adminUsersTab').classList.add('hidden');
+
+      document.getElementById('tabContentBtn').className = "text-zinc-500 hover:text-white pb-3 flex items-center gap-2";
+      document.getElementById('tabGenresBtn').className = "text-zinc-500 hover:text-white pb-3 flex items-center gap-2";
+      document.getElementById('tabUsersBtn').className = "text-zinc-500 hover:text-white pb-3 flex items-center gap-2";
+
+      if(tab === 'content') {
+        document.getElementById('adminContentTab').classList.remove('hidden');
+        document.getElementById('tabContentBtn').className = "border-b-2 border-brand-500 text-white pb-3 flex items-center gap-2";
+      } else if(tab === 'genres') {
+        document.getElementById('adminGenresTab').classList.remove('hidden');
+        document.getElementById('tabGenresBtn').className = "border-b-2 border-brand-500 text-white pb-3 flex items-center gap-2";
+      } else {
+        document.getElementById('adminUsersTab').classList.remove('hidden');
+        document.getElementById('tabUsersBtn').className = "border-b-2 border-brand-500 text-white pb-3 flex items-center gap-2";
+      }
     }
 
     window.onload = () => { loadDataFromGoogleSheets(); };
