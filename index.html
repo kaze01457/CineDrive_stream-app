@@ -251,7 +251,10 @@
   <div id="episodeManagerModal" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
     <div class="bg-darkcard border border-zinc-800 w-full max-w-2xl rounded-2xl p-6 relative space-y-4 my-8 shadow-2xl">
       <button onclick="closeModal('episodeManagerModal')" class="absolute top-4 right-4 text-zinc-400 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
-      <div><h3 class="text-lg font-black text-white" id="epManagerShowTitle">Kelola Episode</h3></div>
+      <div>
+        <h3 class="text-lg font-black text-white" id="epManagerShowTitle">Kelola Episode</h3>
+        <p class="text-xs text-zinc-400">Tambah episode baru atau klik <span class="text-amber-400 font-semibold">Edit</span> / <span class="text-rose-400 font-semibold">Hapus</span> pada daftar episode di bawah.</p>
+      </div>
       <form id="epSingleForm" onsubmit="saveSingleEpisode(event)" class="space-y-3 text-xs bg-zinc-900/60 p-4 rounded-xl border border-zinc-800">
         <div class="grid grid-cols-2 gap-3">
           <div><label class="block text-zinc-400 mb-1 font-semibold">Season #</label><input type="number" id="inputEpSeason" value="1" min="1" required class="w-full bg-zinc-900 border border-zinc-800 rounded-lg p-2 text-white"></div>
@@ -269,11 +272,14 @@
             </label>
           </div>
         </div>
-        <div class="flex justify-end"><button type="submit" id="btnSaveEp" class="bg-brand-600 hover:bg-brand-700 text-white font-bold px-4 py-2 rounded-lg text-xs">Simpan Episode</button></div>
+        <div class="flex justify-end gap-2">
+          <button type="button" onclick="resetEpisodeForm()" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-300 font-bold px-3 py-2 rounded-lg text-xs">Reset Form</button>
+          <button type="submit" id="btnSaveEp" class="bg-brand-600 hover:bg-brand-700 text-white font-bold px-4 py-2 rounded-lg text-xs">Simpan Episode</button>
+        </div>
       </form>
       <div class="space-y-2">
         <h4 class="text-xs font-bold text-zinc-300">Daftar Episode Saat Ini:</h4>
-        <div class="max-h-48 overflow-y-auto border border-zinc-800 rounded-xl divide-y divide-zinc-800/80 bg-zinc-900/40" id="epManagerList"></div>
+        <div class="max-h-52 overflow-y-auto border border-zinc-800 rounded-xl divide-y divide-zinc-800/80 bg-zinc-900/40" id="epManagerList"></div>
       </div>
     </div>
   </div>
@@ -350,7 +356,6 @@
         if (data.shows) database = data.shows;
         if (data.users) userList = data.users;
 
-        // BACA GENRE MURNI DARI DATABASE GOOGLE SHEETS
         if (data.genres && data.genres.length > 0) {
           const uniqueGenres = Array.from(new Set(data.genres));
           genresList = ['All', ...uniqueGenres.filter(g => g.toLowerCase() !== 'all')];
@@ -547,11 +552,56 @@
       await fetch(GOOGLE_API_URL, { method: 'POST', body: JSON.stringify(payload) });
 
       const show = database.find(d => d.id === currentManagingShowId);
-      show.episodes.push({ season, ep, title, driveId });
+      const existingEpIdx = show.episodes.findIndex(item => item.season === season && item.ep === ep);
+      
+      if (existingEpIdx !== -1) {
+        show.episodes[existingEpIdx] = { season, ep, title, driveId };
+      } else {
+        show.episodes.push({ season, ep, title, driveId });
+      }
+
       renderEpisodeManagerList();
       renderAdminTables();
+      resetEpisodeForm();
+      alert('Episode berhasil disimpan!');
+    }
+
+    function editEpisodeForm(season, epNum) {
+      const show = database.find(d => d.id === currentManagingShowId);
+      if (!show) return;
+      const ep = show.episodes.find(e => e.season === season && e.ep === epNum);
+      if (ep) {
+        document.getElementById('inputEpSeason').value = ep.season;
+        document.getElementById('inputEpNum').value = ep.ep;
+        document.getElementById('inputEpTitle').value = ep.title;
+        document.getElementById('inputEpDriveId').value = ep.driveId;
+      }
+    }
+
+    async function deleteEpisodeFromShow(season, epNum) {
+      if (confirm(`Apakah Anda yakin ingin menghapus S${season} E${epNum}?`)) {
+        const show = database.find(d => d.id === currentManagingShowId);
+        if (!show) return;
+
+        show.episodes = show.episodes.filter(e => !(e.season === season && e.ep === epNum));
+        renderEpisodeManagerList();
+        renderAdminTables();
+
+        try {
+          await fetch(GOOGLE_API_URL, {
+            method: 'POST',
+            body: JSON.stringify({ action: 'deleteEpisode', showId: currentManagingShowId, season: season, ep: epNum })
+          });
+          alert('Episode telah terhapus dari Google Sheets.');
+        } catch(err) {
+          console.error("Gagal menghapus episode:", err);
+        }
+      }
+    }
+
+    function resetEpisodeForm() {
       document.getElementById('epSingleForm').reset();
-      alert('Episode tersimpan!');
+      document.getElementById('inputEpSeason').value = 1;
     }
 
     async function saveUserByAdmin(e) {
@@ -789,6 +839,7 @@
       currentManagingShowId = showId;
       const item = database.find(d => d.id === showId);
       document.getElementById('epManagerShowTitle').innerText = `Kelola Episode: ${item.title}`;
+      resetEpisodeForm();
       renderEpisodeManagerList();
       document.getElementById('episodeManagerModal').classList.remove('hidden');
     }
@@ -805,6 +856,14 @@
           <div class="space-y-0.5">
             <span class="font-bold text-white">S${ep.season} E${ep.ep}: ${ep.title}</span>
             <div class="text-[10px] text-zinc-500 font-mono">Drive ID: ${ep.driveId}</div>
+          </div>
+          <div class="flex items-center gap-1.5">
+            <button onclick="editEpisodeForm(${ep.season}, ${ep.ep})" class="bg-amber-500/10 text-amber-400 border border-amber-500/30 px-2 py-1 rounded text-[10px] font-bold flex items-center gap-1 hover:bg-amber-500/20 transition">
+              <i data-lucide="edit-2" class="w-3 h-3"></i> Edit
+            </button>
+            <button onclick="deleteEpisodeFromShow(${ep.season}, ${ep.ep})" class="bg-rose-500/10 text-rose-400 border border-rose-500/30 px-2 py-1 rounded text-[10px] font-bold flex items-center gap-1 hover:bg-rose-500/20 transition" title="Hapus Episode">
+              <i data-lucide="trash-2" class="w-3 h-3"></i> Hapus
+            </button>
           </div>
         </div>
       `).join('');
