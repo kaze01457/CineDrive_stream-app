@@ -30,7 +30,6 @@
 </head>
 <body class="bg-darkbg text-zinc-100 min-h-screen font-sans antialiased selection:bg-brand-500 selection:text-white">
 
-  <!-- TOP NAVIGATION BAR -->
   <header class="sticky top-0 z-40 bg-darkbg/90 backdrop-blur-md border-b border-zinc-800/80 px-4 lg:px-8 py-3 flex items-center justify-between">
     <div class="flex items-center gap-8">
       <div class="flex items-center gap-2.5 cursor-pointer" onclick="navigate('home')">
@@ -61,7 +60,6 @@
     </div>
   </header>
 
-  <!-- KATALOG HOMEPAGE -->
   <main id="mainContainer" class="pb-16 space-y-6">
     <section class="relative w-full h-[60vh] max-h-[480px] bg-gradient-to-t from-darkbg via-darkbg/40 to-transparent">
       <img id="heroBg" src="https://images.unsplash.com/photo-1578632767115-351597cf2477?q=80&w=1600&auto=format&fit=crop" class="w-full h-full object-cover mix-blend-overlay opacity-60">
@@ -96,7 +94,6 @@
     </section>
   </main>
 
-  <!-- WATCH VIEW -->
   <section id="watchView" class="hidden px-4 lg:px-12 py-6 max-w-7xl mx-auto space-y-6">
     <button onclick="navigate('home')" class="text-xs font-bold text-zinc-400 hover:text-white flex items-center gap-1.5 bg-darkcard px-3 py-1.5 rounded-lg border border-zinc-800 w-fit">
       <i data-lucide="arrow-left" class="w-4 h-4"></i> Kembali ke Katalog
@@ -125,7 +122,6 @@
     </div>
   </section>
 
-  <!-- ADMIN VIEW -->
   <section id="adminView" class="hidden px-4 lg:px-12 py-6 max-w-7xl mx-auto space-y-6">
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-zinc-800 pb-4">
       <div>
@@ -178,7 +174,6 @@
     </div>
   </section>
 
-  <!-- MODAL: LOGIN / REGISTER -->
   <div id="loginModal" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
     <div class="bg-darkcard border border-zinc-800 w-full max-w-sm rounded-2xl p-6 relative space-y-4 shadow-2xl">
       <button onclick="closeModal('loginModal')" class="absolute top-4 right-4 text-zinc-400 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
@@ -208,7 +203,6 @@
     </div>
   </div>
 
-  <!-- MODAL: ADD/EDIT CONTENT -->
   <div id="contentModal" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
     <div class="bg-darkcard border border-zinc-800 w-full max-w-xl rounded-2xl p-6 relative space-y-4 my-8 shadow-2xl">
       <button onclick="closeModal('contentModal')" class="absolute top-4 right-4 text-zinc-400 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
@@ -254,7 +248,6 @@
     </div>
   </div>
 
-  <!-- MODAL: EPISODE MANAGER -->
   <div id="episodeManagerModal" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
     <div class="bg-darkcard border border-zinc-800 w-full max-w-2xl rounded-2xl p-6 relative space-y-4 my-8 shadow-2xl">
       <button onclick="closeModal('episodeManagerModal')" class="absolute top-4 right-4 text-zinc-400 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
@@ -285,7 +278,6 @@
     </div>
   </div>
 
-  <!-- MODAL: KELOLA AKUN USER -->
   <div id="userModal" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
     <div class="bg-darkcard border border-zinc-800 w-full max-w-md rounded-2xl p-6 relative space-y-4 shadow-2xl">
       <button onclick="closeModal('userModal')" class="absolute top-4 right-4 text-zinc-400 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
@@ -319,7 +311,6 @@
     </div>
   </div>
 
-  <!-- JAVASCRIPT LOGIC DENGAN PERBAIKAN LENGKAP -->
   <script>
     const GOOGLE_API_URL = "https://script.google.com/macros/s/AKfycbzTJmGYAXZnVDF6pAv8OxAGsx43cyXNmgr8vnageRUuEur6Ow7evcBb9y-72MPAWV5e/exec";
 
@@ -328,11 +319,11 @@
     let activeType = 'all';
     let currentManagingShowId = null;
 
-    let genresList = ['All', 'Action', 'Sci-Fi', 'Fantasy', 'Romance', 'Drama', 'Comedy', 'Horror', 'Slice of Life', 'Mecha'];
+    let genresList = ['All'];
     let database = [];
     let userList = [];
 
-    // FUNGSI KONVERSI LINK GOOGLE DRIVE KE URL GAMBAR LANGSUNG
+    // FUNGSI UTAMA CONVERT LINK GOOGLE DRIVE KE URL THUMBNAIL LANGSUNG
     function formatDriveImageUrl(url) {
       if (!url) return 'https://placehold.co/300x450/141417/ffffff?text=No+Cover';
       if (url.includes('drive.google.com') || url.includes('docs.google.com')) {
@@ -351,18 +342,20 @@
 
     async function loadDataFromGoogleSheets() {
       initAuth();
-      renderGenres();
 
       try {
         const response = await fetch(GOOGLE_API_URL + "?action=getData&_t=" + Date.now());
         const data = await response.json();
         
-        if(data.shows) database = data.shows;
-        if(data.users) userList = data.users;
+        if (data.shows) database = data.shows;
+        if (data.users) userList = data.users;
 
+        // BACA GENRE MURNI DARI DATABASE GOOGLE SHEETS
         if (data.genres && data.genres.length > 0) {
           const uniqueGenres = Array.from(new Set(data.genres));
           genresList = ['All', ...uniqueGenres.filter(g => g.toLowerCase() !== 'all')];
+        } else {
+          genresList = ['All'];
         }
 
         renderGenres();
@@ -731,25 +724,37 @@
     }
 
     async function deleteContent(id) {
-      if (confirm('Apakah Anda yakin ingin menghapus tayangan ini?')) {
+      if (confirm('Apakah Anda yakin ingin menghapus tayangan ini secara permanen dari Google Sheets?')) {
         database = database.filter(d => d.id !== id);
         renderCatalog();
         renderAdminTables();
-        await fetch(GOOGLE_API_URL, {
-          method: 'POST',
-          body: JSON.stringify({ action: 'deleteContent', id: id })
-        });
+        
+        try {
+          await fetch(GOOGLE_API_URL, {
+            method: 'POST',
+            body: JSON.stringify({ action: 'deleteContent', id: id })
+          });
+          alert('Tayangan telah terhapus dari Google Sheets.');
+        } catch(err) {
+          console.error("Gagal menghapus konten dari server:", err);
+        }
       }
     }
 
     async function deleteUser(id) {
-      if (confirm('Apakah Anda yakin ingin menghapus akun ini?')) {
+      if (confirm('Apakah Anda yakin ingin menghapus akun pengguna ini dari Google Sheets?')) {
         userList = userList.filter(u => u.id !== id);
         renderAdminTables();
-        await fetch(GOOGLE_API_URL, {
-          method: 'POST',
-          body: JSON.stringify({ action: 'deleteUser', id: id })
-        });
+        
+        try {
+          await fetch(GOOGLE_API_URL, {
+            method: 'POST',
+            body: JSON.stringify({ action: 'deleteUser', id: id })
+          });
+          alert('Akun pengguna telah terhapus dari Google Sheets.');
+        } catch(err) {
+          console.error("Gagal menghapus user dari server:", err);
+        }
       }
     }
 
