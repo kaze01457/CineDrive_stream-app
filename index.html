@@ -187,4 +187,633 @@
         <button id="authTabRegisterBtn" onclick="switchAuthTab('register')" class="text-zinc-500 hover:text-white pb-1">Daftar Pengguna Baru</button>
       </div>
 
-      <form id="loginForm" onsubmit
+      <form id="loginForm" onsubmit="handleLoginSubmit(event)" class="space-y-3 text-xs">
+        <div>
+          <label class="block text-zinc-400 mb-1 font-semibold">Email Workspace</label>
+          <input type="email" id="loginEmail" required placeholder="admin@workspace.com" class="w-full bg-zinc-900 border border-zinc-800 rounded-xl p-2.5 text-white">
+        </div>
+        <div>
+          <label class="block text-zinc-400 mb-1 font-semibold">Kata Sandi (Password)</label>
+          <input type="password" id="loginPassword" required placeholder="••••••••" class="w-full bg-zinc-900 border border-zinc-800 rounded-xl p-2.5 text-white">
+        </div>
+        <button type="submit" class="w-full bg-brand-600 hover:bg-brand-700 text-white font-bold py-2.5 rounded-xl shadow transition">Masuk Sekarang</button>
+      </form>
+
+      <form id="registerForm" onsubmit="handleRegisterSubmit(event)" class="hidden space-y-3 text-xs">
+        <div><label class="block text-zinc-400 mb-1 font-semibold">Nama Lengkap</label><input type="text" id="regName" required class="w-full bg-zinc-900 border border-zinc-800 rounded-xl p-2.5 text-white"></div>
+        <div><label class="block text-zinc-400 mb-1 font-semibold">Email Workspace</label><input type="email" id="regEmail" required class="w-full bg-zinc-900 border border-zinc-800 rounded-xl p-2.5 text-white"></div>
+        <div><label class="block text-zinc-400 mb-1 font-semibold">Buat Password</label><input type="password" id="regPassword" required class="w-full bg-zinc-900 border border-zinc-800 rounded-xl p-2.5 text-white"></div>
+        <button type="submit" class="w-full bg-brand-600 hover:bg-brand-700 text-white font-bold py-2.5 rounded-xl shadow transition">Daftar Pengguna</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: ADD/EDIT CONTENT -->
+  <div id="contentModal" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
+    <div class="bg-darkcard border border-zinc-800 w-full max-w-xl rounded-2xl p-6 relative space-y-4 my-8 shadow-2xl">
+      <button onclick="closeModal('contentModal')" class="absolute top-4 right-4 text-zinc-400 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
+      <h3 class="text-lg font-extrabold text-white" id="modalContentTitle">Tambah Tayangan Baru</h3>
+      <form id="contentForm" onsubmit="saveContent(event)" class="space-y-3 text-xs">
+        <input type="hidden" id="editContentId" value="">
+        <div><label class="block text-zinc-400 mb-1 font-semibold">Judul Tayangan</label><input type="text" id="inputTitle" required class="w-full bg-zinc-900 border border-zinc-800 rounded-xl p-2.5 text-white"></div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-zinc-400 mb-1 font-semibold">Tipe Format</label>
+            <select id="inputType" class="w-full bg-zinc-900 border border-zinc-800 rounded-xl p-2.5 text-white">
+              <option value="anime">Anime Series</option>
+              <option value="series">TV Series</option>
+              <option value="movie">Movie</option>
+              <option value="short">Short/OVA</option>
+            </select>
+          </div>
+          <div><label class="block text-zinc-400 mb-1 font-semibold">Rating</label><input type="text" id="inputRating" value="9.0" required class="w-full bg-zinc-900 border border-zinc-800 rounded-xl p-2.5 text-white"></div>
+        </div>
+
+        <div>
+          <label class="block text-zinc-400 mb-1 font-semibold">Pilih Genre (Bisa Pilih Banyak)</label>
+          <div id="genreCheckboxGroup" class="grid grid-cols-3 gap-2 bg-zinc-900 p-3 rounded-xl border border-zinc-800 max-h-32 overflow-y-auto"></div>
+        </div>
+
+        <div>
+          <label class="block text-zinc-400 mb-1 font-semibold">Cover Poster</label>
+          <div class="flex gap-2">
+            <input type="url" id="inputPoster" placeholder="https://..." class="w-full bg-zinc-900 border border-zinc-800 rounded-xl p-2.5 text-white">
+            <label class="bg-zinc-800 hover:bg-zinc-700 text-white font-bold px-3 py-2 rounded-xl cursor-pointer shrink-0 flex items-center gap-1">
+              <i data-lucide="upload" class="w-4 h-4"></i> Upload
+              <input type="file" accept="image/*" class="hidden" onchange="uploadFileDirect(this, 'poster')">
+            </label>
+          </div>
+        </div>
+
+        <div><label class="block text-zinc-400 mb-1 font-semibold">Sinopsis</label><textarea id="inputDesc" rows="3" class="w-full bg-zinc-900 border border-zinc-800 rounded-xl p-2.5 text-white"></textarea></div>
+        <div class="pt-2 flex justify-end gap-2">
+          <button type="button" onclick="closeModal('contentModal')" class="px-4 py-2 rounded-xl bg-zinc-800 text-zinc-300 font-bold">Batal</button>
+          <button type="submit" id="btnSaveContent" class="px-5 py-2 rounded-xl bg-brand-600 hover:bg-brand-700 text-white font-bold">Simpan Data</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: EPISODE MANAGER -->
+  <div id="episodeManagerModal" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
+    <div class="bg-darkcard border border-zinc-800 w-full max-w-2xl rounded-2xl p-6 relative space-y-4 my-8 shadow-2xl">
+      <button onclick="closeModal('episodeManagerModal')" class="absolute top-4 right-4 text-zinc-400 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
+      <div><h3 class="text-lg font-black text-white" id="epManagerShowTitle">Kelola Episode</h3></div>
+      <form id="epSingleForm" onsubmit="saveSingleEpisode(event)" class="space-y-3 text-xs bg-zinc-900/60 p-4 rounded-xl border border-zinc-800">
+        <div class="grid grid-cols-2 gap-3">
+          <div><label class="block text-zinc-400 mb-1 font-semibold">Season #</label><input type="number" id="inputEpSeason" value="1" min="1" required class="w-full bg-zinc-900 border border-zinc-800 rounded-lg p-2 text-white"></div>
+          <div><label class="block text-zinc-400 mb-1 font-semibold">Episode #</label><input type="number" id="inputEpNum" required class="w-full bg-zinc-900 border border-zinc-800 rounded-lg p-2 text-white"></div>
+        </div>
+        <div><label class="block text-zinc-400 mb-1 font-semibold">Judul Episode</label><input type="text" id="inputEpTitle" required class="w-full bg-zinc-900 border border-zinc-800 rounded-lg p-2 text-white"></div>
+        
+        <div>
+          <label class="block text-zinc-400 mb-1 font-semibold">Video Google Drive (File ID atau Upload)</label>
+          <div class="flex gap-2">
+            <input type="text" id="inputEpDriveId" placeholder="File ID Drive..." required class="w-full bg-zinc-900 border border-zinc-800 rounded-lg p-2 text-white font-mono">
+            <label class="bg-amber-600 hover:bg-amber-700 text-white font-bold px-3 py-2 rounded-lg cursor-pointer shrink-0 flex items-center gap-1">
+              <i data-lucide="upload-cloud" class="w-4 h-4"></i> Upload Video
+              <input type="file" accept="video/*" class="hidden" onchange="uploadFileDirect(this, 'video')">
+            </label>
+          </div>
+        </div>
+        <div class="flex justify-end"><button type="submit" id="btnSaveEp" class="bg-brand-600 hover:bg-brand-700 text-white font-bold px-4 py-2 rounded-lg text-xs">Simpan Episode</button></div>
+      </form>
+      <div class="space-y-2">
+        <h4 class="text-xs font-bold text-zinc-300">Daftar Episode Saat Ini:</h4>
+        <div class="max-h-48 overflow-y-auto border border-zinc-800 rounded-xl divide-y divide-zinc-800/80 bg-zinc-900/40" id="epManagerList"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: KELOLA AKUN USER -->
+  <div id="userModal" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-darkcard border border-zinc-800 w-full max-w-md rounded-2xl p-6 relative space-y-4 shadow-2xl">
+      <button onclick="closeModal('userModal')" class="absolute top-4 right-4 text-zinc-400 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
+      <h3 class="text-lg font-bold text-white" id="modalUserTitle">Kelola Akun Pengguna</h3>
+      <form id="userForm" onsubmit="saveUserByAdmin(event)" class="space-y-3 text-xs">
+        <input type="hidden" id="editUserId" value="">
+        <div><label class="block text-zinc-400 mb-1 font-semibold">Nama Lengkap</label><input type="text" id="inputUserName" required class="w-full bg-zinc-900 border border-zinc-800 rounded-xl p-2.5 text-white"></div>
+        <div><label class="block text-zinc-400 mb-1 font-semibold">Email Workspace</label><input type="email" id="inputUserEmail" required class="w-full bg-zinc-900 border border-zinc-800 rounded-xl p-2.5 text-white"></div>
+        <div><label class="block text-zinc-400 mb-1 font-semibold">Password</label><input type="password" id="inputUserPassword" placeholder="••••••••" class="w-full bg-zinc-900 border border-zinc-800 rounded-xl p-2.5 text-white"></div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-zinc-400 mb-1 font-semibold">Role</label>
+            <select id="inputUserRole" class="w-full bg-zinc-900 border border-zinc-800 rounded-xl p-2.5 text-white">
+              <option value="user">User Biasa</option>
+              <option value="admin">Admin</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-zinc-400 mb-1 font-semibold">Status</label>
+            <select id="inputUserStatus" class="w-full bg-zinc-900 border border-zinc-800 rounded-xl p-2.5 text-white">
+              <option value="Aktif">Aktif</option>
+              <option value="Nonaktif">Nonaktif</option>
+            </select>
+          </div>
+        </div>
+        <div class="pt-2 flex justify-end gap-2">
+          <button type="button" onclick="closeModal('userModal')" class="px-4 py-2 rounded-xl bg-zinc-800 text-zinc-300 font-bold">Batal</button>
+          <button type="submit" class="px-5 py-2 rounded-xl bg-brand-600 hover:bg-brand-700 text-white font-bold">Simpan Akun</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- JAVASCRIPT LOGIC -->
+  <script>
+    const GOOGLE_API_URL = "https://script.google.com/macros/s/AKfycbzTJmGYAXZnVDF6pAv8OxAGsx43cyXNmgr8vnageRUuEur6Ow7evcBb9y-72MPAWV5e/exec";
+
+    let currentUser = null;
+    let activeGenre = 'all';
+    let activeType = 'all';
+    let currentManagingShowId = null;
+
+    let genresList = ['All', 'Action', 'Sci-Fi', 'Fantasy', 'Romance', 'Drama', 'Comedy', 'Horror', 'Slice of Life', 'Mecha'];
+    let database = [];
+    let userList = [];
+
+    async function loadDataFromGoogleSheets() {
+      initAuth();
+      renderGenres();
+
+      try {
+        // Trik anti-cache (_t=timestamp) agar data dari Sheets selalu fresh saat direfresh
+        const response = await fetch(GOOGLE_API_URL + "?action=getData&_t=" + Date.now());
+        const data = await response.json();
+        
+        if(data.shows) database = data.shows;
+        if(data.users) userList = data.users;
+
+        if (data.genres && data.genres.length > 0) {
+          const uniqueGenres = Array.from(new Set(data.genres));
+          genresList = ['All', ...uniqueGenres.filter(g => g.toLowerCase() !== 'all')];
+        }
+
+        renderGenres();
+        renderCatalog();
+        renderAuthUI();
+      } catch(err) {
+        console.error("Koneksi gagal:", err);
+      }
+    }
+
+    function initAuth() {
+      const savedUser = localStorage.getItem('cinedrive_session');
+      if (savedUser) currentUser = JSON.parse(savedUser);
+      renderAuthUI();
+    }
+
+    function renderAuthUI() {
+      const authArea = document.getElementById('authArea');
+      const adminDashBtn = document.getElementById('adminDashboardBtn');
+
+      if (currentUser) {
+        const isAdmin = currentUser.role === 'admin';
+        if (isAdmin) adminDashBtn.classList.remove('hidden');
+        else {
+          adminDashBtn.classList.add('hidden');
+          if (!document.getElementById('adminView').classList.contains('hidden')) navigate('home');
+        }
+
+        authArea.innerHTML = `
+          <div class="flex items-center gap-3">
+            <div class="text-right hidden md:block">
+              <div class="text-xs font-bold text-white flex items-center justify-end gap-1.5">
+                <span>${currentUser.name}</span>
+                ${isAdmin ? '<span class="bg-amber-500/20 text-amber-400 border border-amber-500/40 text-[9px] font-black px-1.5 py-0.5 rounded">ADMIN</span>' : ''}
+              </div>
+              <div class="text-[10px] text-zinc-500 font-mono">${currentUser.email}</div>
+            </div>
+            <button onclick="handleLogout()" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-300 p-2 rounded-xl text-xs font-bold border border-zinc-700 transition"><i data-lucide="log-out" class="w-4 h-4"></i></button>
+          </div>
+        `;
+      } else {
+        adminDashBtn.classList.add('hidden');
+        authArea.innerHTML = `
+          <button onclick="openLoginModal()" class="bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold px-4 py-2 rounded-xl transition shadow-md flex items-center gap-1.5"><i data-lucide="log-in" class="w-4 h-4"></i> Masuk</button>
+        `;
+      }
+      lucide.createIcons();
+    }
+
+    function openLoginModal() { document.getElementById('loginModal').classList.remove('hidden'); }
+    function switchAuthTab(tab) {
+      if(tab === 'login') {
+        document.getElementById('loginForm').classList.remove('hidden');
+        document.getElementById('registerForm').classList.add('hidden');
+        document.getElementById('authTabLoginBtn').className = "text-white border-b-2 border-brand-500 pb-1";
+        document.getElementById('authTabRegisterBtn').className = "text-zinc-500 hover:text-white pb-1";
+      } else {
+        document.getElementById('loginForm').classList.add('hidden');
+        document.getElementById('registerForm').classList.remove('hidden');
+        document.getElementById('authTabRegisterBtn').className = "text-white border-b-2 border-brand-500 pb-1";
+        document.getElementById('authTabLoginBtn').className = "text-zinc-500 hover:text-white pb-1";
+      }
+    }
+
+    function handleLoginSubmit(e) {
+      e.preventDefault();
+      const email = document.getElementById('loginEmail').value.trim();
+      const pass = document.getElementById('loginPassword').value.trim();
+
+      const user = userList.find(u => u.email.toLowerCase() === email.toLowerCase() && String(u.password) === pass);
+
+      if (user) {
+        if(user.status === 'Nonaktif') return alert('Akun Anda dinonaktifkan.');
+        currentUser = user;
+        localStorage.setItem('cinedrive_session', JSON.stringify(currentUser));
+        renderAuthUI();
+        closeModal('loginModal');
+      } else alert('Email atau password salah!');
+    }
+
+    async function handleRegisterSubmit(e) {
+      e.preventDefault();
+      const newUser = {
+        action: 'saveUser', id: 'u_' + Date.now(),
+        name: document.getElementById('regName').value,
+        email: document.getElementById('regEmail').value,
+        password: document.getElementById('regPassword').value,
+        role: 'user', status: 'Aktif'
+      };
+
+      fetch(GOOGLE_API_URL, { method: 'POST', body: JSON.stringify(newUser) });
+
+      userList.push(newUser);
+      currentUser = newUser;
+      localStorage.setItem('cinedrive_session', JSON.stringify(currentUser));
+      renderAuthUI();
+      closeModal('loginModal');
+      alert('Registrasi berhasil!');
+    }
+
+    function handleLogout() {
+      if (confirm('Keluar akun?')) {
+        currentUser = null;
+        localStorage.removeItem('cinedrive_session');
+        renderAuthUI();
+        navigate('home');
+      }
+    }
+
+    function uploadFileDirect(inputElement, targetType) {
+      const file = inputElement.files[0];
+      if (!file) return;
+
+      const btn = targetType === 'poster' ? document.getElementById('btnSaveContent') : document.getElementById('btnSaveEp');
+      btn.disabled = true;
+      btn.innerText = 'Mengunggah File...';
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const base64Data = e.target.result.split(',')[1];
+        const payload = {
+          action: 'uploadFile',
+          fileName: file.name,
+          mimeType: file.type,
+          fileData: base64Data
+        };
+
+        fetch(GOOGLE_API_URL, { method: 'POST', body: JSON.stringify(payload) })
+          .then(res => res.json())
+          .then(res => {
+            btn.disabled = false;
+            btn.innerText = 'Simpan';
+            if(res.status === 'success') {
+              if (targetType === 'poster') {
+                document.getElementById('inputPoster').value = res.downloadUrl;
+              } else {
+                document.getElementById('inputEpDriveId').value = res.fileId;
+              }
+              alert('Upload berhasil!');
+            } else alert('Gagal upload: ' + res.message);
+          })
+          .catch(err => {
+            btn.disabled = false;
+            btn.innerText = 'Simpan';
+            alert('Terjadi kesalahan saat mengunggah.');
+          });
+      };
+      reader.readAsDataURL(file);
+    }
+
+    async function saveContent(e) {
+      e.preventDefault();
+      const id = document.getElementById('editContentId').value || Date.now().toString();
+      const title = document.getElementById('inputTitle').value;
+      const type = document.getElementById('inputType').value;
+      const rating = document.getElementById('inputRating').value;
+      const poster = document.getElementById('inputPoster').value;
+      const desc = document.getElementById('inputDesc').value;
+
+      const selectedGenres = Array.from(document.querySelectorAll('.genre-checkbox:checked')).map(cb => cb.value);
+
+      const payload = { action: 'saveContent', id, title, type, rating, genre: selectedGenres, poster, desc };
+
+      fetch(GOOGLE_API_URL, { method: 'POST', body: JSON.stringify(payload) });
+
+      const idx = database.findIndex(d => d.id === id);
+      if (idx !== -1) {
+        database[idx] = { ...database[idx], title, type, rating, genre: selectedGenres, poster, desc };
+      } else {
+        database.unshift({ id, title, type, rating, genre: selectedGenres, poster, desc, episodes: [] });
+      }
+
+      renderCatalog();
+      renderAdminTables();
+      closeModal('contentModal');
+      alert('Tayangan berhasil diperbarui di Google Sheets!');
+    }
+
+    async function saveSingleEpisode(e) {
+      e.preventDefault();
+      const season = parseInt(document.getElementById('inputEpSeason').value);
+      const ep = parseInt(document.getElementById('inputEpNum').value);
+      const title = document.getElementById('inputEpTitle').value;
+      let driveId = document.getElementById('inputEpDriveId').value;
+
+      if(driveId.includes('/file/d/')) driveId = driveId.split('/file/d/')[1].split('/')[0];
+
+      const payload = { action: 'saveEpisode', showId: currentManagingShowId, season, ep, title, driveId };
+
+      fetch(GOOGLE_API_URL, { method: 'POST', body: JSON.stringify(payload) });
+
+      const show = database.find(d => d.id === currentManagingShowId);
+      show.episodes.push({ season, ep, title, driveId });
+      renderEpisodeManagerList();
+      renderAdminTables();
+      document.getElementById('epSingleForm').reset();
+      alert('Episode tersimpan!');
+    }
+
+    async function saveUserByAdmin(e) {
+      e.preventDefault();
+      const id = document.getElementById('editUserId').value || 'u_' + Date.now();
+      const name = document.getElementById('inputUserName').value;
+      const email = document.getElementById('inputUserEmail').value;
+      const password = document.getElementById('inputUserPassword').value;
+      const role = document.getElementById('inputUserRole').value;
+      const status = document.getElementById('inputUserStatus').value;
+
+      const payload = { action: 'saveUser', id, name, email, password, role, status };
+
+      fetch(GOOGLE_API_URL, { method: 'POST', body: JSON.stringify(payload) });
+
+      const idx = userList.findIndex(u => u.id === id);
+      if(idx !== -1) {
+        userList[idx] = { id, name, email, password: password || userList[idx].password, role, status };
+      } else {
+        userList.push({ id, name, email, password, role, status });
+      }
+
+      renderAdminTables();
+      closeModal('userModal');
+      alert('Data pengguna berhasil diperbarui!');
+    }
+
+    function renderGenres() {
+      const container = document.getElementById('genreContainer');
+      container.innerHTML = genresList.map(g => `
+        <button onclick="filterGenre('${g.toLowerCase()}')" 
+                class="px-4 py-1.5 rounded-full border transition shrink-0 ${
+                  activeGenre === g.toLowerCase() || (activeGenre === 'all' && g === 'All') 
+                    ? 'bg-brand-600 border-brand-500 text-white font-bold' 
+                    : 'bg-darkcard border-zinc-800 text-zinc-400 hover:text-white'
+                }">${g}</button>
+      `).join('');
+
+      const adminGrid = document.getElementById('adminGenreGrid');
+      if(adminGrid) {
+        adminGrid.innerHTML = genresList.filter(g => g !== 'All').map((g) => `
+          <div class="bg-darkcard border border-zinc-800 p-3 rounded-xl flex items-center justify-between text-xs font-bold text-white">
+            <span>${g}</span>
+            <button onclick="deleteGenre('${g}')" class="text-rose-500 hover:text-rose-400 p-1"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>
+          </div>
+        `).join('');
+      }
+    }
+
+    function renderCatalog(items = database) {
+      const grid = document.getElementById('catalogGrid');
+      let filtered = items.filter(item => {
+        const matchType = activeType === 'all' || item.type === activeType;
+        const matchGenre = activeGenre === 'all' || item.genre.some(g => g.toLowerCase() === activeGenre);
+        return matchType && matchGenre;
+      });
+
+      document.getElementById('itemCount').innerText = `${filtered.length} Tayangan`;
+
+      if (filtered.length === 0) {
+        grid.innerHTML = `<div class="col-span-full text-center py-16 text-zinc-500 text-xs">Belum ada tayangan di Google Sheets.</div>`;
+        return;
+      }
+
+      grid.innerHTML = filtered.map(item => `
+        <div class="group relative bg-darkcard border border-zinc-800/80 rounded-2xl overflow-hidden hover:border-brand-500/50 transition flex flex-col justify-between shadow-lg">
+          <div class="relative aspect-[2/3] overflow-hidden bg-zinc-900">
+            <img src="${item.poster}" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
+            <div class="absolute top-2.5 left-2.5 bg-black/70 backdrop-blur text-amber-400 text-[10px] font-bold px-2 py-0.5 rounded-md flex items-center gap-1">★ ${item.rating}</div>
+            <div class="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition flex items-center justify-center">
+              <button onclick="playMedia('${item.id}')" class="bg-brand-600 text-white p-3.5 rounded-full shadow-2xl hover:scale-110 transition"><i data-lucide="play" class="w-5 h-5 fill-current"></i></button>
+            </div>
+          </div>
+          <div class="p-3">
+            <h3 class="font-bold text-xs sm:text-sm text-white truncate group-hover:text-brand-500 transition">${item.title}</h3>
+            <p class="text-zinc-500 text-[10px] truncate mt-0.5">${item.genre.join(', ')}</p>
+          </div>
+        </div>
+      `).join('');
+
+      lucide.createIcons();
+    }
+
+    function playMedia(id, epIndex = 0) {
+      const item = database.find(d => d.id === id);
+      if(!item) return;
+
+      const currentEp = item.episodes[epIndex] || item.episodes[0];
+      if(!currentEp) return alert('Tayangan ini belum memiliki episode di Google Sheets.');
+
+      document.getElementById('driveIframe').src = `https://drive.google.com/file/d/${currentEp.driveId}/preview`;
+      document.getElementById('watchTitle').innerText = `${item.title} - ${currentEp.title}`;
+      document.getElementById('watchDesc').innerText = item.desc;
+      document.getElementById('watchBadge').innerText = item.type.toUpperCase();
+      document.getElementById('watchGenre').innerText = item.genre.join(', ');
+      document.getElementById('epCount').innerText = `${item.episodes.length} Episode`;
+
+      const epContainer = document.getElementById('episodeListContainer');
+      epContainer.innerHTML = item.episodes.map((ep, idx) => `
+        <button onclick="playMedia('${item.id}', ${idx})" 
+                class="w-full text-left p-3 rounded-xl border transition flex items-center justify-between ${idx === epIndex ? 'bg-brand-600/20 border-brand-500 text-white font-bold' : 'bg-zinc-900/60 border-zinc-800 text-zinc-400 hover:text-white'}">
+          <div class="flex items-center gap-2"><i data-lucide="play-circle" class="w-4 h-4 ${idx === epIndex ? 'text-brand-500' : 'text-zinc-500'}"></i><span class="text-xs truncate">${ep.title}</span></div>
+          <span class="text-[10px] text-zinc-500 font-mono">Drive</span>
+        </button>
+      `).join('');
+
+      document.getElementById('mainContainer').classList.add('hidden');
+      document.getElementById('adminView').classList.add('hidden');
+      document.getElementById('watchView').classList.remove('hidden');
+
+      lucide.createIcons();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function navigate(view) {
+      if (view === 'admin' && (!currentUser || currentUser.role !== 'admin')) {
+        alert('Akses Ditolak: Khusus Akun Admin.');
+        return openLoginModal();
+      }
+
+      document.getElementById('mainContainer').classList.add('hidden');
+      document.getElementById('watchView').classList.add('hidden');
+      document.getElementById('adminView').classList.add('hidden');
+
+      if(view === 'home') document.getElementById('mainContainer').classList.remove('hidden');
+      else if(view === 'admin') {
+        document.getElementById('adminView').classList.remove('hidden');
+        renderAdminTables();
+      }
+    }
+
+    function renderAdminTables() {
+      const contentTable = document.getElementById('adminContentTable');
+      contentTable.innerHTML = database.map(item => `
+        <tr class="hover:bg-zinc-900/50 transition">
+          <td class="p-3"><img src="${item.poster}" class="w-8 h-11 object-cover rounded-md border border-zinc-700"></td>
+          <td class="p-3 font-bold text-white">${item.title}</td>
+          <td class="p-3"><span class="bg-zinc-800 text-zinc-300 font-extrabold text-[10px] px-2 py-0.5 rounded uppercase">${item.type}</span></td>
+          <td class="p-3 text-zinc-400 text-[11px]">${item.genre.join(', ')}</td>
+          <td class="p-3 text-amber-400 font-bold">★ ${item.rating}</td>
+          <td class="p-3 font-bold text-brand-500">${item.episodes.length} Ep</td>
+          <td class="p-3 text-right space-x-1">
+            <button onclick="openEpisodeManagerModal('${item.id}')" class="bg-amber-500/10 text-amber-400 border border-amber-500/30 px-2.5 py-1 rounded-lg text-[11px] font-bold"><i data-lucide="list-video" class="w-3.5 h-3.5 inline"></i> Episode</button>
+            <button onclick="openContentModal('edit', '${item.id}')" class="bg-zinc-800 text-zinc-200 px-2.5 py-1 rounded-lg text-[11px] font-bold"><i data-lucide="edit-3" class="w-3.5 h-3.5 inline"></i> Edit</button>
+          </td>
+        </tr>
+      `).join('');
+
+      const userTable = document.getElementById('adminUserTable');
+      userTable.innerHTML = userList.map(u => `
+        <tr class="hover:bg-zinc-900/50 transition">
+          <td class="p-3 font-bold text-white">${u.name}</td>
+          <td class="p-3 text-zinc-400 font-mono">${u.email}</td>
+          <td class="p-3"><span class="px-2 py-0.5 rounded text-[10px] font-black uppercase ${u.role === 'admin' ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30' : 'bg-zinc-800 text-zinc-300'}">${u.role}</span></td>
+          <td class="p-3 font-bold ${u.status === 'Aktif' ? 'text-emerald-400' : 'text-rose-500'}">${u.status}</td>
+          <td class="p-3 text-right"><button onclick="openUserModal('edit', '${u.id}')" class="bg-zinc-800 text-zinc-200 px-2.5 py-1 rounded-lg text-[11px] font-bold">Edit</button></td>
+        </tr>
+      `).join('');
+
+      renderGenres();
+      lucide.createIcons();
+    }
+
+    function openContentModal(mode, id = null) {
+      document.getElementById('editContentId').value = id || '';
+      const genreGroup = document.getElementById('genreCheckboxGroup');
+      
+      let activeGenres = [];
+      if (mode === 'edit' && id) {
+        const item = database.find(d => d.id === id);
+        document.getElementById('inputTitle').value = item.title;
+        document.getElementById('inputType').value = item.type;
+        document.getElementById('inputRating').value = item.rating;
+        document.getElementById('inputPoster').value = item.poster;
+        document.getElementById('inputDesc').value = item.desc;
+        activeGenres = item.genre;
+      } else {
+        document.getElementById('contentForm').reset();
+      }
+
+      genreGroup.innerHTML = genresList.filter(g => g !== 'All').map(g => `
+        <label class="flex items-center gap-1.5 text-zinc-300 cursor-pointer">
+          <input type="checkbox" value="${g}" class="genre-checkbox rounded accent-brand-600" ${activeGenres.includes(g) ? 'checked' : ''}>
+          <span>${g}</span>
+        </label>
+      `).join('');
+
+      document.getElementById('contentModal').classList.remove('hidden');
+    }
+
+    function openEpisodeManagerModal(showId) {
+      currentManagingShowId = showId;
+      const item = database.find(d => d.id === showId);
+      document.getElementById('epManagerShowTitle').innerText = `Kelola Episode: ${item.title}`;
+      renderEpisodeManagerList();
+      document.getElementById('episodeManagerModal').classList.remove('hidden');
+    }
+
+    function renderEpisodeManagerList() {
+      const item = database.find(d => d.id === currentManagingShowId);
+      const list = document.getElementById('epManagerList');
+      if(!item || item.episodes.length === 0) {
+        list.innerHTML = `<div class="p-4 text-center text-zinc-500 text-xs">Belum ada episode.</div>`;
+        return;
+      }
+      list.innerHTML = item.episodes.map((ep) => `
+        <div class="p-3 flex items-center justify-between text-xs hover:bg-zinc-800/40 transition">
+          <div class="space-y-0.5">
+            <span class="font-bold text-white">S${ep.season} E${ep.ep}: ${ep.title}</span>
+            <div class="text-[10px] text-zinc-500 font-mono">Drive ID: ${ep.driveId}</div>
+          </div>
+        </div>
+      `).join('');
+      lucide.createIcons();
+    }
+
+    function openUserModal(mode, id = null) {
+      document.getElementById('editUserId').value = id || '';
+      document.getElementById('userForm').reset();
+      document.getElementById('userModal').classList.remove('hidden');
+    }
+
+    function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
+    function filterGenre(g) { activeGenre = g; renderCatalog(); }
+    function filterType(type) { activeType = type; renderCatalog(); }
+    function handleSearch(q) {
+      const filtered = database.filter(item => 
+        item.title.toLowerCase().includes(q.toLowerCase()) ||
+        item.genre.some(g => g.toLowerCase().includes(q.toLowerCase()))
+      );
+      renderCatalog(filtered);
+    }
+
+    function addNewGenrePrompt() {
+      const name = prompt('Nama Genre Baru:');
+      if (name && !genresList.includes(name)) {
+        genresList.push(name);
+        renderGenres();
+
+        fetch(GOOGLE_API_URL, {
+          method: 'POST',
+          body: JSON.stringify({ action: 'addGenre', name: name.trim() })
+        });
+        alert(`Genre "${name}" ditambahkan!`);
+      }
+    }
+
+    function deleteGenre(genreName) {
+      if (confirm(`Hapus genre "${genreName}"?`)) {
+        genresList = genresList.filter(g => g.toLowerCase() !== genreName.toLowerCase());
+        renderGenres();
+
+        fetch(GOOGLE_API_URL, {
+          method: 'POST',
+          body: JSON.stringify({ action: 'deleteGenre', name: genreName })
+        });
+      }
+    }
+
+    function switchAdminTab(tab) {
+      document.getElementById('adminContentTab').classList.add('hidden');
+      document.getElementById('adminGenresTab').classList.add('hidden');
+      document.getElementById('adminUsersTab').classList.add('hidden');
+
+      if(tab === 'content') document.getElementById('adminContentTab').classList.remove('hidden');
+      else if(tab === 'genres') document.getElementById('adminGenresTab').classList.remove('hidden');
+      else document.getElementById('adminUsersTab').classList.remove('hidden');
+    }
+
+    window.onload = () => { loadDataFromGoogleSheets(); };
+  </script>
+</body>
+</html>
